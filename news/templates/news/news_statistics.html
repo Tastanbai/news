@@ -1,0 +1,27 @@
+<!-- templates/news/news_statistics.html -->
+{% extends "base.html" %}
+
+{% block title %}Статистика новостей{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Статистика новостей</h1>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Заголовок</th>
+                <th>Просмотры</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for news_item in news_statistics %}
+            <tr>
+                <td>{{ news_item.title }}</td>
+                <td>{{ news_item.views_count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

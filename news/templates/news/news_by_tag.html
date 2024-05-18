@@ -1,0 +1,24 @@
+<!-- templates/news/news_by_tag.html -->
+{% extends "base.html" %}
+
+{% block title %}Новости по тегу {{ tag.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Новости по тегу: {{ tag.name }}</h1>
+    <div id="news-container">
+        {% for news in news %}
+            <div class="news-item">
+                <h2><a href="{% url 'news_detail' news.pk %}">{{ news.title }}</a></h2>
+                <p>{{ news.text|truncatewords:30 }}</p>
+                <p><strong>Теги:</strong> 
+                    {% for tag in news.tags.all %}
+                        <a href="{% url 'news_by_tag' tag.name %}">{{ tag.name }}</a>
+                    {% endfor %}
+                </p>
+                <p><small>{{ news.created_at }}</small></p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

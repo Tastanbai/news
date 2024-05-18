@@ -1,0 +1,49 @@
+{% block content %}
+<div class="container">
+    <h1>Новости</h1>
+    <div id="news-container">
+        {% for news in news %}
+            <div class="news-item">
+                <h2><a href="{% url 'news_detail' news.pk %}">{{ news.title }}</a></h2>
+                <p>{{ news.text|truncatewords:30 }}</p>
+                <p><strong>Теги:</strong> 
+                    {% for tag in news.tags.all %}
+                        <a href="{% url 'news_by_tag' tag.name %}">{{ tag.name }}</a>
+                    {% endfor %}
+                </p>
+                <p><small>{{ news.created_at }}</small></p>
+            </div>
+        {% endfor %}
+    </div>
+    <div id="loading" style="display:none;">Загрузка...</div>
+</div>
+
+<script>
+let page = 1;
+const newsContainer = document.getElementById('news-container');
+const loading = document.getElementById('loading');
+
+window.onscroll = function() {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+        page++;
+        loading.style.display = 'block';
+        fetch(`/api/news/?page=${page}`)
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                data.results.forEach(news => {
+                    const newsItem = document.createElement('div');
+                    newsItem.className = 'news-item';
+                    newsItem.innerHTML = `
+                        <h2><a href="/news/${news.id}/">${news.title}</a></h2>
+                        <p>${news.text.substring(0, 200)}...</p>
+                        <p><strong>Теги:</strong> ${news.tags.map(tag => `<a href="/tag/${tag.name}/">${tag.name}</a>`).join(', ')}</p>
+                        <p><small>${news.created_at}</small></p>
+                    `;
+                    newsContainer.appendChild(newsItem);
+                });
+            });
+    }
+};
+</script>
+{% endblock %}
