@@ -1,8 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Новости{% endblock %}
+
 {% block content %}
 <div class="container">
     <h1>Новости</h1>
     <div id="news-container">
-        {% for news in news %}
+        {% for news in page_obj %}
             <div class="news-item">
                 <h2><a href="{% url 'news_detail' news.pk %}">{{ news.title }}</a></h2>
                 <p>{{ news.text|truncatewords:30 }}</p>
@@ -12,6 +16,7 @@
                     {% endfor %}
                 </p>
                 <p><small>{{ news.created_at }}</small></p>
+                <p>Лайки: {{ news.likes.count }}</p>
             </div>
         {% endfor %}
     </div>
@@ -19,31 +24,48 @@
 </div>
 
 <script>
-let page = 1;
-const newsContainer = document.getElementById('news-container');
-const loading = document.getElementById('loading');
+    document.addEventListener('DOMContentLoaded', function() {
+        let page = 1;
+        const newsContainer = document.getElementById('news-container');
+        const loading = document.getElementById('loading');
+        
+        window.addEventListener('scroll', () => {
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+                loadMoreNews();
+            }
+        });
 
-window.onscroll = function() {
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
-        page++;
-        loading.style.display = 'block';
-        fetch(`/api/news/?page=${page}`)
-            .then(response => response.json())
-            .then(data => {
-                loading.style.display = 'none';
-                data.results.forEach(news => {
-                    const newsItem = document.createElement('div');
-                    newsItem.className = 'news-item';
-                    newsItem.innerHTML = `
-                        <h2><a href="/news/${news.id}/">${news.title}</a></h2>
-                        <p>${news.text.substring(0, 200)}...</p>
-                        <p><strong>Теги:</strong> ${news.tags.map(tag => `<a href="/tag/${tag.name}/">${tag.name}</a>`).join(', ')}</p>
-                        <p><small>${news.created_at}</small></p>
-                    `;
-                    newsContainer.appendChild(newsItem);
+        function loadMoreNews() {
+            if (loading.style.display === 'none') {
+                loading.style.display = 'block';
+                page++;
+                fetch(`/?page=${page}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loading.style.display = 'none';
+                    data.news.forEach(news => {
+                        const newsItem = document.createElement('div');
+                        newsItem.classList.add('news-item');
+                        newsItem.innerHTML = `
+                            <h2><a href="/news/${news.id}/">${news.title}</a></h2>
+                            <p>${news.text}</p>
+                            <p><small>${news.created_at}</small></p>
+                            <p>Лайки: ${news.likes_count}</p>
+                        `;
+                        newsContainer.appendChild(newsItem);
+                    });
+                })
+                .catch(error => {
+                    loading.style.display = 'none';
+                    console.error('Error:', error);
                 });
-            });
-    }
-};
+            }
+        }
+    });
 </script>
 {% endblock %}
